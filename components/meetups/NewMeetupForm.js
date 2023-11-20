@@ -25,6 +25,12 @@ function NewMeetupForm(props) {
     };
 
     props.onAddMeetup(meetupData);
+
+    titleInputRef.current.value = null;
+    imageInputRef.current.value = null;
+    addressInputRef.current.value = null;
+    descriptionInputRef.current.value = null;
+    
   }
 
   return (
