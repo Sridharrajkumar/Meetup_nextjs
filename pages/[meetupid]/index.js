@@ -1,55 +1,65 @@
+import { MongoClient, ObjectId } from "mongodb";
 import MeetupDetails from "../../components/meetups/MeetupDetails";
 
-const MeetUpdetails = () => {
+const MeetUpdetails = (props) => {
   return (
     <MeetupDetails
-      title="A fourth meetup"
-      image="https://upload.wikimedia.org/wikipedia/commons/d/d3/Stadtbild_M%C3%BCnchen.jpg"
-      address="No.1/e subramainyan street chennai"
-      description="This is a dummy meetup"
+      title={props.meetupData.title}
+      image={props.meetupData.image}
+      address={props.meetupData.address}
+      description={props.meetupData.description}
     />
   );
 };
 
 export async function getStaticPaths() {
+  const client = await MongoClient.connect(
+    "mongodb+srv://sri:eh3zEnXdCGA5Y1Of@cluster0.hcruhil.mongodb.net/meetup?retryWrites=true&w=majority"
+  );
+
+  const db = client.db();
+
+  const meetupCollections = db.collection("meetups");
+
+  const data = meetupCollections.find({}, { _id: 1 }).toArray();
+
+
   return {
     fallback: false,
-    paths: [
-      {
-        params: {
-          meetupid:'m1',
-        }
+    paths: (await data).map((meetid) => ({
+      params: {
+        meetupid: meetid._id.toString(),
       },
-      {
-        params: {
-          meetupid:'m2',
-        }
-      },
-
-    ],
-  }
+    })),
+  };
 }
 
-
-
 export async function getStaticProps(context) {
+  const meetupId = context.params.meetupid;
 
-  const meetupId=context.params.meetupid;
+  const client = await MongoClient.connect(
+    "mongodb+srv://sri:eh3zEnXdCGA5Y1Of@cluster0.hcruhil.mongodb.net/meetup?retryWrites=true&w=majority"
+  );
 
-  console.log(meetupId);
+  const db = client.db();
+
+  const meetupCollections = db.collection("meetups");
+
+  const data = await meetupCollections.findOne({_id: new ObjectId(meetupId)});
+  // console.log(data);
+
+  // console.log(meetupId);
   return {
     props: {
       meetupData: {
-        title: "A fourth meetup",
-        id: meetupId,
-        image:"https://upload.wikimedia.org/wikipedia/commons/d/d3/Stadtbild_M%C3%BCnchen.jpg",
-        address:"No.1/e subramainyan street chennai",
-        description:"This is a dummy meetup"
-      }
+        title: data.title,
+        id: data._id.toString(),
+        image:data.image,
+        address: data.address,
+        description: data.description,
+      },
     },
-
-  }
+  };
 }
 
-export default MeetUpdetails
-
+export default MeetUpdetails;
